@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+
+logs/
+models/
+prediction_plots/
+
+*new.py
+*old.py
+*latest.py
+*helper*.py

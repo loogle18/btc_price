@@ -1,0 +1,33 @@
+{
+	"negative": [
+		"sp500",
+		"buy stock",
+		"virus",
+		"pandemic",
+		"trade war",
+		"war",
+		"crypto bubble",
+		"unemployment",
+		"find job"
+	],
+	"neutral": [
+		"traiding",
+		"investing",
+		"gold",
+		"inflation",
+		"crisis",
+		"economic crisis",
+		"passive income"
+	],
+	"positive": [
+		"coinmarketcap",
+		"crypto exchange",
+		"satoshi",
+		"buy crypto",
+		"blockchain",
+		"crypto",
+		"altcoins",
+		"bitcoin",
+		"btc"
+	]
+}

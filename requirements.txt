@@ -1,0 +1,6 @@
+matplotlib
+pytrends
+sklearn
+keras
+tensorflow
+tensorboard_plugin_profile
