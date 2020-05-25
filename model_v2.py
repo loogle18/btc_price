@@ -89,7 +89,9 @@ def build_model(columns, shape, n_per_out):
     for column in columns:
         keras_input = keras.Input(shape=shape, name="Input_%s" % column)
         inputs.append(keras_input)
-        layers.append(LSTM(units=64, name="LSTM_%s" % column)(keras_input))
+        keras_lstm = LSTM(units=64, name="LSTM_%s" % column, recurrent_activation="tanh", activation="linear", return_sequences=True)(keras_input)
+        keras_hidden = LSTM(32)(keras_lstm)
+        layers.append(Dense(units=64, name="Dense_%s" % column, activation="linear")(keras_hidden))
     outputs = keras.layers.concatenate(inputs=layers)
     outputs = Dense(n_per_out, activation="linear", name="weighted_average")(outputs)
     model = Model(inputs=inputs, outputs=outputs)
@@ -97,7 +99,7 @@ def build_model(columns, shape, n_per_out):
     model.compile(optimizer="adamax", loss="mse")
     return model
 
-save = True
+save = False
 
 epochs = 800
 
@@ -110,7 +112,7 @@ n_per_out = 5
 # Features (in this case it's 1 because there is only one feature: price)
 n_features = 1
 
-title = "model-v1--il-4--lb-%d--la-%d--ep-%d--aof-linear-adamax--nl-64--bs-128--s-false--vs-01" % (n_per_in, n_per_out, epochs)
+title = "model-v2--in-4--lb-%d--la-%d--ep-%d--aof-linear-adamax--nl-64x32--bs-128--s-false--vs-01" % (n_per_in, n_per_out, epochs)
 
 scalers, df = get_data("data/training/final.csv")
 _, df_test = get_data("data/testing/final.csv", scalers)
@@ -121,27 +123,26 @@ shapes_test = get_x_y_shapes(df_test, n_per_in, n_per_out, n_features)
 training_data = list(map(lambda shape: shape["x"], shapes.values()))
 testing_data = list(map(lambda shape: shape["x"], shapes_test.values()))
 
-logs = "logs/%s" % title
-tboard_callback = keras.callbacks.TensorBoard(log_dir=logs)
-model = build_model(df.columns.values, (n_per_in, n_features), n_per_out)
-res = model.fit(training_data, shapes["close"]["y"], epochs=epochs, batch_size=128, shuffle=False, validation_split=0.1, callbacks=[tboard_callback])
-if save:
-    model.save(
-        "models/%s" % title,
-        overwrite=True,
-        include_optimizer=True,
-        save_format=None,
-        signatures=None,
-        options=None
-    )
+# logs = "logs/%s" % title
+# tboard_callback = keras.callbacks.TensorBoard(log_dir=logs)
+# model = build_model(df.columns.values, (n_per_in, n_features), n_per_out)
+# res = model.fit(training_data, shapes["close"]["y"], epochs=epochs, batch_size=128, shuffle=False, validation_split=0.1, callbacks=[tboard_callback])
+# if save:
+#     model.save(
+#         "models/%s" % title,
+#         overwrite=True,
+#         include_optimizer=True,
+#         save_format=None,
+#         signatures=None,
+#         options=None
+#     )
 # visualize_training_results(res)
-# model = keras.models.load_model("models/%s" % title)
-plt.figure(figsize=(14, 5))
+model = keras.models.load_model("models/%s" % title)
+plt.figure(figsize=(14,5))
 
 predicted_list = []
 actual_list = []
 for n in reversed(range(1, len(shapes_test["close"]["x"]) + 1)):
-    # print(scalers["close"].inverse_transform(shapes_test["close"]["y"][-n].reshape(-1,1)))
     yhat = model.predict([
         # shapes_test["open"]["x"][-n].reshape(1, n_per_in, n_features),
         # shapes_test["high"]["x"][-n].reshape(1, n_per_in, n_features),
@@ -168,9 +169,9 @@ for n in reversed(range(1, len(shapes_test["close"]["x"]) + 1)):
     actual_list.extend(actual)
 
 
-if len(predicted_list) > 5:
-    predicted_list = predicted_list[::5] + predicted_list[-4:]
-    actual_list = actual_list[::5] + actual_list[-4:]
+if len(predicted_list) > n_per_out:
+    predicted_list = predicted_list[::n_per_out] + predicted_list[-(n_per_out - 1):]
+    actual_list = actual_list[::n_per_out] + actual_list[-(n_per_out - 1):]
 
 
 # print("Predicted Prices:\n", predicted_list)

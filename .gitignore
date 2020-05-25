@@ -2,10 +2,14 @@ __pycache__/
 *.py[cod]
 
 logs/
-models/
-prediction_plots/
+models*/
+prediction_plots*/
 
 *new.py
 *old.py
+*example*.py
 *latest.py
 *helper*.py
+
+*.png
+*.csv
