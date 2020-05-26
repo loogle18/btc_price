@@ -1,6 +1,7 @@
 import requests
 import pandas as pd
 from datetime import datetime, timedelta
+import decorators
 
 
 def request_global_data(start_time, end_time):
@@ -42,6 +43,7 @@ def parse_global_data(data):
     return result
 
 
+@decorators.error_handler
 def parse_btc_data(data):
     result = []
     for value in data:
@@ -72,7 +74,8 @@ def get_btc_data(start_time, end_time):
     return df
 
 
-def main(start_date, end_date):
+@decorators.error_handler
+def main(start_date, end_date, save=False):
     # start_date = str((datetime.strptime(start_date, '%Y-%m-%d') - timedelta(days=1)).date())
     start_time = dt_to_ts(start_date)
     end_time = dt_to_ts(end_date)
@@ -83,9 +86,6 @@ def main(start_date, end_date):
     df["btc_volume_pct"] = (df["volume_btc"] * 100 / df["volume_all"]).astype(float)
     # df.drop(["market_cap_btc", "market_cap_all", "volume_btc", "volume_all"], axis=1, inplace=True)
     df[["market_cap_btc", "market_cap_all", "volume_btc", "volume_all"]] = df[["market_cap_btc", "market_cap_all", "volume_btc", "volume_all"]].applymap(int)
-    df.to_csv("data/clean/coinmarketcap.csv", index=None)
-    print(df)
-
-
-if __name__ == "__main__":
-    main("2020-05-18", "2020-05-24")
+    if save:
+        df.to_csv("data/clean/coinmarketcap.csv", index=None)
+    return df
